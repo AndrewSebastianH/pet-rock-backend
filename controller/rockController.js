@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
-const { Rock } = require("../model/rock");
+const { Rock } = require("../model");
+const { use } = require("bcrypt/promises");
 
 // Create a new rock
 exports.createRock = async (req, res) => {
@@ -27,6 +28,41 @@ exports.getAllRocks = async (req, res) => {
   }
 };
 
+// Get rock by ID, but only if it belongs to the authenticated user
+exports.getRockById = async (req, res) => {
+  try {
+    const rockId = req.params.id;
+    const userId = req.user.id;
+    console.log(userId);
+
+    const rock = await Rock.findOne({
+      where: {
+        id: rockId,
+        userId: userId,
+      },
+    });
+
+    if (!rock) {
+      return res.status(404).json({
+        message: "Rock not found or you do not have permission to view it.",
+      });
+    }
+
+    // Return rock details if the user owns it
+    return res.status(200).json({
+      id: rock.id,
+      name: rock.name,
+      color: rock.color,
+      status: rock.status,
+      createdAt: rock.createdAt,
+      updatedAt: rock.updatedAt,
+    });
+  } catch (error) {
+    console.error("Error fetching rock:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Update a rock by ID
 exports.updateRock = async (req, res) => {
   const errors = validationResult(req);
@@ -43,7 +79,6 @@ exports.updateRock = async (req, res) => {
       return res.status(404).json({ message: "Rock not found" });
     }
 
-    // Update only fields that are provided
     if (name) rock.name = name;
     if (color) rock.color = color;
 
@@ -54,18 +89,44 @@ exports.updateRock = async (req, res) => {
   }
 };
 
+// Pet rock
+exports.petRock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const rock = await Rock.findOne({ where: { id, userId } });
+
+    if (!rock) {
+      return res.status(404).json({
+        message: "Rock not found or you do not have permission to pet it.",
+      });
+    }
+
+    rock.status = "The rock is now happy (i think)";
+    res.status(200).json(rock);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Delete a rock by ID
 exports.deleteRock = async (req, res) => {
   try {
     const { id } = req.params;
-    const rock = await Rock.findOne({ where: { id, userId: req.user.id } });
-    if (!rock) {
-      return res.status(404).json({ message: "Rock not found" });
-    }
+    const userId = req.user.id;
 
+    const rock = await Rock.findOne({ where: { id, userId } });
+
+    if (!rock) {
+      return res.status(404).json({
+        message: "Rock not found or you do not have permission to delete it.",
+      });
+    }
     await rock.destroy();
-    res.status(204).send(); // No content to send back
+    return res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Error deleting rock:", error);
+    return res.status(500).json({ error: error.message });
   }
 };

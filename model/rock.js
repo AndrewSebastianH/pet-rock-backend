@@ -20,7 +20,6 @@ const Rock = sequelize.define(
     },
     status: {
       type: DataTypes.STRING,
-      // Removed unique: true to allow multiple rocks to share the same status
     },
     userId: {
       type: DataTypes.INTEGER,

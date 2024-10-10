@@ -7,7 +7,7 @@ const isAuthenticated = require("../middleware/isAuthenticated");
 
 // Create a new rock
 router.post(
-  "/rocks",
+  "/",
   isAuthenticated,
   [
     body("name").trim().notEmpty().withMessage("Name is required"),
@@ -16,12 +16,17 @@ router.post(
   rockController.createRock
 );
 
+// Pet rock
+router.put("/pet/:id", isAuthenticated, rockController.petRock);
+
 // Get all rocks for the authenticated user
-router.get("/rocks", isAuthenticated, rockController.getAllRocks);
+router.get("/", isAuthenticated, rockController.getAllRocks);
+// Get rock by id
+router.get("/:id", isAuthenticated, rockController.getRockById);
 
 // Update a rock by ID
 router.put(
-  "/rocks/:id",
+  "/:id",
   isAuthenticated,
   [
     body("name")
@@ -39,6 +44,6 @@ router.put(
 );
 
 // Delete a rock by ID
-router.delete("/rocks/:id", isAuthenticated, rockController.deleteRock);
+router.delete("/:id", isAuthenticated, rockController.deleteRock);
 
 module.exports = router;
