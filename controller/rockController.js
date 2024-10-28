@@ -33,7 +33,6 @@ exports.getRockById = async (req, res) => {
   try {
     const rockId = req.params.id;
     const userId = req.user.id;
-    console.log(userId);
 
     const rock = await Rock.findOne({
       where: {

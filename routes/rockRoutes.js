@@ -21,6 +21,7 @@ router.put("/pet/:id", isAuthenticated, rockController.petRock);
 
 // Get all rocks for the authenticated user
 router.get("/", isAuthenticated, rockController.getAllRocks);
+
 // Get rock by id
 router.get("/:id", isAuthenticated, rockController.getRockById);
 
